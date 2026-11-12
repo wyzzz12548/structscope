@@ -195,7 +195,7 @@ Roadmap, roughly in order:
 ## Development
 
 ```console
-git clone https://github.com/<your-org>/structdiff
+git clone https://github.com/wyzzz12548/structdiff
 cd structdiff
 set PYTHONPATH=src
 python -m unittest discover -s tests -t .

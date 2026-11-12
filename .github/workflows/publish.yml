@@ -3,7 +3,7 @@ name: Publish to PyPI
 # Fires when you publish a GitHub release, e.g. tag v0.1.0.
 # Before the first run, register the trusted publisher on PyPI:
 #   https://pypi.org/manage/account/publishing/
-#   owner/repo = <your-org>/structdiff, workflow = publish.yml, environment = pypi
+#   owner/repo = wyzzz12548/structdiff, workflow = publish.yml, environment = pypi
 
 on:
   release:
