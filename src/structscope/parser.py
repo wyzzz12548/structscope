@@ -12,7 +12,7 @@ import hashlib
 import tokenize
 from typing import List
 
-from .model import FileModel, StructDiffError, Symbol
+from .model import FileModel, StructScopeError, Symbol
 
 _DEF_TYPES = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 
@@ -23,13 +23,13 @@ def read_source(path: str) -> str:
         with tokenize.open(path) as fh:
             return fh.read()
     except (OSError, SyntaxError, UnicodeDecodeError) as exc:
-        raise StructDiffError(f"cannot read {path}: {exc}") from exc
+        raise StructScopeError(f"cannot read {path}: {exc}") from exc
 
 
 def parse_source(source: str, path: str = "<source>", label: str = "") -> FileModel:
     """Parse ``source`` into a :class:`FileModel`.
 
-    Raises :class:`StructDiffError` with a readable message on syntax errors.
+    Raises :class:`StructScopeError` with a readable message on syntax errors.
     """
     try:
         tree = ast.parse(source, filename=path)
@@ -39,9 +39,9 @@ def parse_source(source: str, path: str = "<source>", label: str = "") -> FileMo
         message = f"{where}: syntax error: {exc.msg}"
         if snippet:
             message += f"\n    {snippet.strip()}"
-        raise StructDiffError(message) from exc
+        raise StructScopeError(message) from exc
     except ValueError as exc:  # e.g. source containing null bytes
-        raise StructDiffError(f"{path}: cannot parse: {exc}") from exc
+        raise StructScopeError(f"{path}: cannot parse: {exc}") from exc
 
     lines = source.splitlines()
     symbols: List[Symbol] = []

@@ -2,8 +2,8 @@ import json
 import re
 import unittest
 
-from structdiff.diff import diff_sources
-from structdiff.render import render_html
+from structscope.diff import diff_sources
+from structscope.render import render_html
 
 PAYLOAD = re.compile(
     r'<script id="payload" type="application/json">(.*?)</script>', re.S

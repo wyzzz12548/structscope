@@ -1,7 +1,7 @@
 import unittest
 
-from structdiff.diff import diff_sources
-from structdiff.model import Status
+from structscope.diff import diff_sources
+from structscope.model import Status
 
 
 class MatchTest(unittest.TestCase):

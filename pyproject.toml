@@ -3,13 +3,13 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "structdiff"
+name = "structscope"
 version = "0.1.0"
 description = "Structural diff for Python: see what a change did to your code, not which characters moved."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
-authors = [{ name = "StructDiff contributors" }]
+authors = [{ name = "StructScope contributors" }]
 keywords = ["ast", "diff", "visualization", "code-review", "education", "refactoring"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -24,12 +24,12 @@ classifiers = [
 dependencies = []
 
 [project.scripts]
-structdiff = "structdiff.cli:main"
+structscope = "structscope.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/wyzzz12548/structdiff"
-Repository = "https://github.com/wyzzz12548/structdiff"
-Issues = "https://github.com/wyzzz12548/structdiff/issues"
+Homepage = "https://github.com/wyzzz12548/structscope"
+Repository = "https://github.com/wyzzz12548/structscope"
+Issues = "https://github.com/wyzzz12548/structscope/issues"
 
 [tool.setuptools]
 package-dir = { "" = "src" }
@@ -38,4 +38,4 @@ package-dir = { "" = "src" }
 where = ["src"]
 
 [tool.setuptools.package-data]
-structdiff = ["py.typed", "templates/*.html", "templates/*.css", "templates/*.js"]
+structscope = ["py.typed", "templates/*.html", "templates/*.css", "templates/*.js"]

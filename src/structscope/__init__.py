@@ -1,9 +1,9 @@
-"""StructDiff — see what a code change did to the structure, in one picture."""
+"""StructScope — see what a code change did to the structure, in one picture."""
 
 from __future__ import annotations
 
 from .diff import DiffResult, diff_files, diff_sources
-from .model import FileModel, Pair, Status, StructDiffError, Symbol
+from .model import FileModel, Pair, Status, StructScopeError, Symbol
 from .parser import parse_file, parse_source
 from .render import render_html, write_report
 
@@ -14,7 +14,7 @@ __all__ = [
     "FileModel",
     "Pair",
     "Status",
-    "StructDiffError",
+    "StructScopeError",
     "Symbol",
     "diff_files",
     "diff_sources",

@@ -51,7 +51,7 @@ def write_report(
 
 
 def _asset(name: str) -> str:
-    return (files("structdiff") / "templates" / name).read_text(encoding="utf-8")
+    return (files("structscope") / "templates" / name).read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------- payload

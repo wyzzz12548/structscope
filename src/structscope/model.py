@@ -7,7 +7,7 @@ from enum import Enum
 from typing import Dict, Iterator, List, Optional
 
 
-class StructDiffError(Exception):
+class StructScopeError(Exception):
     """Raised when a file cannot be read or parsed."""
 
 

@@ -1,4 +1,4 @@
-"""Command line interface for StructDiff."""
+"""Command line interface for StructScope."""
 
 from __future__ import annotations
 
@@ -10,13 +10,13 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 from .diff import diff_files
-from .model import StructDiffError
+from .model import StructScopeError
 from .render import render_html
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="structdiff",
+        prog="structscope",
         description="Structural diff for Python: see what changed, not which characters.",
     )
     parser.add_argument("old", help="the original .py file")
@@ -24,7 +24,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-o",
         "--output",
-        help="report path (default: <new file>.structdiff.html)",
+        help="report path (default: <new file>.structscope.html)",
     )
     parser.add_argument("--old-label", default="", help="label for the left column")
     parser.add_argument("--new-label", default="", help="label for the right column")
@@ -55,8 +55,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             old_label=args.old_label,
             new_label=args.new_label,
         )
-    except StructDiffError as exc:
-        print(f"structdiff: {exc}", file=sys.stderr)
+    except StructScopeError as exc:
+        print(f"structscope: {exc}", file=sys.stderr)
         return 2
 
     summary = result.summary()
@@ -69,12 +69,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.output:
         output = Path(args.output)
     else:
-        output = Path(args.new).with_suffix(".structdiff.html")
+        output = Path(args.new).with_suffix(".structscope.html")
 
     try:
         output.write_text(render_html(result, title=args.title or None), encoding="utf-8")
     except OSError as exc:
-        print(f"structdiff: cannot write {output}: {exc}", file=sys.stderr)
+        print(f"structscope: cannot write {output}: {exc}", file=sys.stderr)
         return 2
 
     if not args.quiet:
@@ -98,7 +98,7 @@ def _summary_line(summary) -> str:
     parts.append(
         f"LOC {summary['old_loc']} -> {summary['new_loc']} ({summary['loc_delta']:+d})"
     )
-    return "structdiff: " + ", ".join(parts)
+    return "structscope: " + ", ".join(parts)
 
 
 def _safe_stdout() -> None:

@@ -1,4 +1,4 @@
-"""Allow ``python -m structdiff``."""
+"""Allow ``python -m structscope``."""
 
 from .cli import main
 

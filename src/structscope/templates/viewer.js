@@ -1,4 +1,4 @@
-/* StructDiff viewer — no dependencies, no network. */
+/* StructScope viewer — no dependencies, no network. */
 (function () {
   "use strict";
 

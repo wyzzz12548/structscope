@@ -1,16 +1,16 @@
-# StructDiff
+# StructScope
 
 **See what a change did to your code — not which characters moved.**
 
-`structdiff` compares two versions of a Python file at the level of *structure*
+`structscope` compares two versions of a Python file at the level of *structure*
 instead of text, and renders the result as one interactive picture: every
 function and class becomes a block, blocks are coloured by what happened to
 them, and curves tie each block to its counterpart in the other version.
 
 ```console
-$ structdiff before.py after.py --open
-structdiff: 3 added, 1 removed, 2 modified, 1 unchanged, LOC 55 -> 47 (-8)
-wrote after.structdiff.html (26 KB)
+$ structscope before.py after.py --open
+structscope: 3 added, 1 removed, 2 modified, 1 unchanged, LOC 55 -> 47 (-8)
+wrote after.structscope.html (26 KB)
 ```
 
 One HTML file, no server, no CDN, no JavaScript dependencies. It works on a
@@ -26,7 +26,7 @@ new ones produces a wall of red and green, and yet nothing about the program
 changed except its shape. Conversely, a one-character edit inside a condition
 can quietly raise a function's complexity without looking dramatic.
 
-StructDiff asks the structural questions instead:
+StructScope asks the structural questions instead:
 
 - Which functions and classes appeared, disappeared, or changed?
 - Did a function get *bigger*, or did it just move?
@@ -72,7 +72,7 @@ complexity for both versions.
 ## Install
 
 ```console
-pip install structdiff
+pip install structscope
 ```
 
 Python 3.9+. No dependencies.
@@ -82,7 +82,7 @@ From a checkout, without installing:
 ```console
 set PYTHONPATH=src          # Windows
 export PYTHONPATH=src       # macOS / Linux
-python -m structdiff examples/before.py examples/after.py -o demo.html
+python -m structscope examples/before.py examples/after.py -o demo.html
 ```
 
 ## Use
@@ -90,17 +90,17 @@ python -m structdiff examples/before.py examples/after.py -o demo.html
 ### Command line
 
 ```console
-structdiff OLD.py NEW.py
-structdiff OLD.py NEW.py -o report.html --open
-structdiff my_solution.py reference.py \
+structscope OLD.py NEW.py
+structscope OLD.py NEW.py -o report.html --open
+structscope my_solution.py reference.py \
     --old-label "my code" --new-label "reference" \
     --title "Exercise 3"
-structdiff OLD.py NEW.py --json        # summary only, for scripts
+structscope OLD.py NEW.py --json        # summary only, for scripts
 ```
 
 | Option | Meaning |
 | --- | --- |
-| `-o, --output` | Where to write the report (default: `<new>.structdiff.html`) |
+| `-o, --output` | Where to write the report (default: `<new>.structscope.html`) |
 | `--old-label`, `--new-label` | Column headings |
 | `--title` | Report title |
 | `--json` | Print the summary as JSON and exit |
@@ -112,7 +112,7 @@ Exit codes: `0` success, `2` unreadable file or syntax error.
 ### Python
 
 ```python
-from structdiff import diff_files, diff_sources, render_html, write_report
+from structscope import diff_files, diff_sources, render_html, write_report
 
 result = diff_files("before.py", "after.py")
 print(result.summary())
@@ -135,7 +135,7 @@ for pair in result.pairs:
 ### In CI
 
 ```yaml
-- run: structdiff main.py pr.py --json
+- run: structscope main.py pr.py --json
 ```
 
 ## How it works
@@ -195,8 +195,8 @@ Roadmap, roughly in order:
 ## Development
 
 ```console
-git clone https://github.com/wyzzz12548/structdiff
-cd structdiff
+git clone https://github.com/wyzzz12548/structscope
+cd structscope
 set PYTHONPATH=src
 python -m unittest discover -s tests -t .
 ```
@@ -205,7 +205,7 @@ The package is a `src/` layout with no runtime dependencies, so tests run
 against the checkout directly.
 
 ```
-src/structdiff/
+src/structscope/
 ├── model.py      dataclasses: Symbol, FileModel, Pair, Status
 ├── parser.py     ast -> Symbol tree, LOC, complexity
 ├── matcher.py    three-pass symbol matching

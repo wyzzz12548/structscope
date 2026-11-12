@@ -31,7 +31,7 @@ jobs:
         run: python -m unittest discover -s tests -t . -v
 
       - name: Smoke test the CLI
-        run: structdiff examples/before.py examples/after.py -o build/demo.html --json
+        run: structscope examples/before.py examples/after.py -o build/demo.html --json
 
   build:
     runs-on: ubuntu-latest

@@ -27,7 +27,7 @@ tests/_tmp/
 *.swp
 
 # Generated reports
-*.structdiff.html
+*.structscope.html
 report.html
 
 # OS

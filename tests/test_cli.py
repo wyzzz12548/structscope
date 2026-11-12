@@ -3,7 +3,7 @@ import shutil
 import unittest
 from pathlib import Path
 
-from structdiff.cli import main
+from structscope.cli import main
 
 TMP_ROOT = Path(__file__).resolve().parent / "_tmp"
 
@@ -35,7 +35,7 @@ class CliTest(unittest.TestCase):
         finally:
             os.chdir(cwd)
         self.assertEqual(code, 0)
-        self.assertTrue((self.root / "new.structdiff.html").exists())
+        self.assertTrue((self.root / "new.structscope.html").exists())
 
     def test_json_mode(self):
         code = main([str(self.old), str(self.new), "--json"])

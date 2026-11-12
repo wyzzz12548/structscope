@@ -1,4 +1,4 @@
-"""Make ``src/structdiff`` importable when running the tests from a checkout."""
+"""Make ``src/structscope`` importable when running the tests from a checkout."""
 
 import sys
 from pathlib import Path

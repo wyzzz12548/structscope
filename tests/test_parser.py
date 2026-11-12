@@ -1,7 +1,7 @@
 import unittest
 
-from structdiff.model import StructDiffError
-from structdiff.parser import parse_source
+from structscope.model import StructScopeError
+from structscope.parser import parse_source
 
 SOURCE = '''
 class Store:
@@ -69,12 +69,12 @@ class ParseSourceTest(unittest.TestCase):
 
 class ParseErrorTest(unittest.TestCase):
     def test_syntax_error_has_location(self):
-        with self.assertRaises(StructDiffError) as ctx:
+        with self.assertRaises(StructScopeError) as ctx:
             parse_source("def f(:\n    pass\n", path="broken.py")
         self.assertIn("broken.py", str(ctx.exception))
 
     def test_syntax_error_does_not_leak_python_traceback(self):
-        with self.assertRaises(StructDiffError):
+        with self.assertRaises(StructScopeError):
             parse_source("class", path="broken.py")
 
 
