@@ -1,0 +1,8 @@
+# Normalize line endings: LF in the repo, LF in the working tree.
+* text=auto eol=lf
+
+# Binary-ish files we never want diffed as text.
+*.png binary
+*.jpg binary
+*.gif binary
+*.webp binary

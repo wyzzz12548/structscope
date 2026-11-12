@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "structdiff"
+version = "0.1.0"
+description = "Structural diff for Python: see what a change did to your code, not which characters moved."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "StructDiff contributors" }]
+keywords = ["ast", "diff", "visualization", "code-review", "education", "refactoring"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Education",
+]
+dependencies = []
+
+[project.scripts]
+structdiff = "structdiff.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/structdiff/structdiff"
+Repository = "https://github.com/structdiff/structdiff"
+Issues = "https://github.com/structdiff/structdiff/issues"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+structdiff = ["py.typed", "templates/*.html", "templates/*.css", "templates/*.js"]

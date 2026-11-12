@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<style>__CSS__</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">◧</span>
+      <div class="brand-text">
+        <h1>__TITLE__</h1>
+        <p class="sub">structural diff · AST-level, not line-level</p>
+      </div>
+    </div>
+    <nav class="filters" id="filters" aria-label="filter">
+      <button type="button" data-filter="all" class="is-active">All</button>
+      <button type="button" data-filter="changed">Changed</button>
+      <button type="button" data-filter="added">Added</button>
+      <button type="button" data-filter="removed">Removed</button>
+      <button type="button" data-filter="modified">Modified</button>
+    </nav>
+  </header>
+
+  <section class="stats" id="stats">__STATS__</section>
+
+  <main class="main">
+    <div class="stage" id="stage">__SVG__</div>
+    <aside class="panel" id="panel" hidden></aside>
+  </main>
+
+  <footer class="hint">
+    <span><b>Click</b> a block to read the code</span>
+    <span><b>Hover</b> to follow its counterpart</span>
+    <span><b>Esc</b> to close</span>
+  </footer>
+
+</div>
+
+<script id="payload" type="application/json">__JSON__</script>
+<script>__JS__</script>
+</body>
+</html>
