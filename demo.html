@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>examples\before.py → examples\after.py</title>
+<style>:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --added: #16a34a;
+  --removed: #dc2626;
+  --modified: #d97706;
+  --moved: #7c3aed;
+  --unchanged: #94a3b8;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 14px/1.5 ui-sans-serif, system-ui, "Segoe UI", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ------------------------------------------------------------ topbar */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 14px 22px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.logo {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 17px;
+  flex: none;
+}
+
+.brand-text { min-width: 0; }
+
+h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sub {
+  margin: 1px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.filters {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+
+.filters button {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background .12s, color .12s, border-color .12s;
+}
+
+.filters button:hover { border-color: #cbd5e1; color: var(--ink); }
+
+.filters button.is-active {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #fff;
+}
+
+/* ------------------------------------------------------------- stats */
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 9px 22px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.chip {
+  display: inline-block;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid transparent;
+}
+
+.chip.st-added     { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+.chip.st-removed   { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+.chip.st-modified  { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+.chip.st-moved     { background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
+.chip.st-unchanged { background: #f8fafc; color: #64748b; border-color: #e2e8f0; }
+
+/* -------------------------------------------------------------- main */
+
+.main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.stage {
+  flex: 1;
+  overflow: auto;
+  padding: 10px 0 40px 6px;
+}
+
+.stage svg { display: block; }
+
+/* -------------------------------------------------------------- nodes */
+
+.node .card {
+  fill: var(--surface);
+  stroke: #cbd5e1;
+  stroke-width: 1;
+}
+
+.node.st-unchanged .card { fill: #fbfcfd; stroke: #e2e8f0; }
+.node.st-added     .card { fill: #f0fdf4; stroke: #86efac; }
+.node.st-removed   .card { fill: #fef2f2; stroke: #fca5a5; }
+.node.st-modified  .card { fill: #fffbeb; stroke: #fcd34d; }
+.node.st-moved     .card { fill: #f5f3ff; stroke: #c4b5fd; }
+
+.node .accent { fill: #cbd5e1; }
+.node.st-unchanged .accent { fill: #cbd5e1; }
+.node.st-added     .accent { fill: var(--added); }
+.node.st-removed   .accent { fill: var(--removed); }
+.node.st-modified  .accent { fill: var(--modified); }
+.node.st-moved     .accent { fill: var(--moved); }
+
+.node .bar { fill: #94a3b8; opacity: .55; }
+.node.st-added   .bar { fill: var(--added); }
+.node.st-removed .bar { fill: var(--removed); }
+.node.st-modified .bar { fill: var(--modified); }
+.node.st-moved   .bar { fill: var(--moved); }
+
+.node .nm {
+  font-size: 12px;
+  font-weight: 500;
+  fill: #1e293b;
+  pointer-events: none;
+}
+
+.node.st-unchanged .nm { fill: #64748b; font-weight: 400; }
+
+.node .cx {
+  font: 10px/1 ui-monospace, "Cascadia Code", Consolas, monospace;
+  fill: #94a3b8;
+  pointer-events: none;
+}
+
+.node.st-modified .cx { fill: #b45309; }
+
+.node { cursor: pointer; }
+
+.node:hover .card { stroke-width: 1.6; }
+
+/* -------------------------------------------------------------- links */
+
+.link {
+  fill: none;
+  stroke: #cbd5e1;
+  stroke-width: 1.2;
+  opacity: .5;
+  transition: opacity .12s;
+}
+
+.link.st-added   { stroke: #86efac; }
+.link.st-modified { stroke: #fbbf24; }
+.link.st-moved   { stroke: #c4b5fd; stroke-dasharray: 4 3; }
+
+/* ------------------------------------------------------- interaction */
+
+svg.dimmed .node:not(.hot) { opacity: .22; }
+svg.dimmed .link:not(.hot) { opacity: .06; }
+
+.node.hot .card { stroke-width: 2.2; stroke: #0f172a; }
+.link.hot { opacity: 1; stroke-width: 2; stroke: #0f172a; }
+
+.node.is-hidden { display: none; }
+.link.is-hidden { display: none; }
+
+/* ------------------------------------------------------ column heads */
+
+.colhead .col-title {
+  font-size: 13px;
+  font-weight: 600;
+  fill: #0f172a;
+}
+
+.colhead .col-sub {
+  font-size: 11px;
+  fill: #94a3b8;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------- panel */
+
+.panel {
+  width: 720px;
+  max-width: 68vw;
+  flex: none;
+  background: var(--surface);
+  border-left: 1px solid var(--line);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel[hidden] { display: none; }
+
+.p-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 14px 18px 12px;
+}
+
+.p-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-right: 28px;
+}
+
+.p-title h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.p-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.p-close:hover { background: #f1f5f9; color: var(--ink); }
+
+.p-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.p-metrics span {
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: #475569;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 1px 7px;
+}
+
+.p-note {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #b45309;
+}
+
+.src {
+  font: 12px/1.55 ui-monospace, "Cascadia Code", Consolas, monospace;
+  padding-bottom: 24px;
+}
+
+.srow {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 38px minmax(0, 1fr);
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.srow .ln {
+  color: #cbd5e1;
+  text-align: right;
+  padding: 0 7px;
+  user-select: none;
+  background: #fbfcfd;
+  border-right: 1px solid #f1f5f9;
+}
+
+.srow .code {
+  padding: 0 8px;
+  white-space: pre;
+  overflow-x: auto;
+  color: #1e293b;
+}
+
+.srow.del .c-old { background: #fef2f2; }
+.srow.del .ln.old { background: #fee2e2; color: #b91c1c; }
+
+.srow.ins .c-new { background: #f0fdf4; }
+.srow.ins .ln.new { background: #dcfce7; color: #15803d; }
+
+.srow.rep .c-old,
+.srow.rep .c-new { background: #fffbeb; }
+.srow.rep .ln { background: #fef3c7; color: #b45309; }
+
+/* ------------------------------------------------------------- hint */
+
+.hint {
+  display: flex;
+  gap: 22px;
+  padding: 7px 22px;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.hint b { color: #475569; font-weight: 600; }
+
+@media (max-width: 900px) {
+  .panel { position: absolute; right: 0; top: 0; bottom: 0; width: 88vw; max-width: none; box-shadow: -12px 0 32px rgba(15,23,42,.12); }
+  .main { position: relative; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">◧</span>
+      <div class="brand-text">
+        <h1>examples\before.py → examples\after.py</h1>
+        <p class="sub">structural diff · AST-level, not line-level</p>
+      </div>
+    </div>
+    <nav class="filters" id="filters" aria-label="filter">
+      <button type="button" data-filter="all" class="is-active">All</button>
+      <button type="button" data-filter="changed">Changed</button>
+      <button type="button" data-filter="added">Added</button>
+      <button type="button" data-filter="removed">Removed</button>
+      <button type="button" data-filter="modified">Modified</button>
+    </nav>
+  </header>
+
+  <section class="stats" id="stats"><span class="chip st-added">3 added</span><span class="chip st-removed">1 removed</span><span class="chip st-modified">2 modified</span><span class="chip st-unchanged">1 unchanged</span><span class="chip">LOC 55 → 47 (-8)</span><span class="chip">complexity 16 → 16 (+0)</span></section>
+
+  <main class="main">
+    <div class="stage" id="stage"><svg id="canvas" xmlns="http://www.w3.org/2000/svg" width="746" height="266" viewBox="0 0 746 266" font-family="ui-sans-serif, system-ui, Segoe UI, sans-serif"><g class="colhead" transform="translate(0,0)"><text class="col-title" x="0" y="26">examples\before.py</text><text class="col-sub" x="0" y="45">55 LOC · 4 symbols</text></g><g class="colhead" transform="translate(454,0)"><text class="col-title" x="0" y="26">examples\after.py</text><text class="col-sub" x="0" y="45">47 LOC · 6 symbols</text></g><path class="link st-unchanged" data-pair="p1" data-status="unchanged" d="M264.0,87.0 C343.8,87.0 374.2,87.0 454.0,87.0"/><path class="link st-modified" data-pair="p2" data-status="modified" d="M264.0,114.0 C343.8,114.0 374.2,114.0 454.0,114.0"/><path class="link st-modified" data-pair="p3" data-status="modified" d="M264.0,168.0 C343.8,168.0 374.2,222.0 454.0,222.0"/><g class="node st-unchanged" data-pair="p1" data-status="unchanged" transform="translate(0,76)"><title>load_rows · function · 3 lines · complexity 1</title><rect class="card" width="264" height="22" rx="6"/><rect class="accent" x="0" y="0" width="3" height="22" rx="1.5"/><rect class="bar" x="3" y="18" width="80.3" height="2" rx="1"/><text class="nm" x="11" y="15">load_rows</text><text class="cx" x="256" y="15" text-anchor="end">1</text></g><g class="node st-modified" data-pair="p2" data-status="modified" transform="translate(0,103)"><title>parse_scores · function · 11 lines · complexity 4  (+0 lines, +1 complexity)</title><rect class="card" width="264" height="22" rx="6"/><rect class="accent" x="0" y="0" width="3" height="22" rx="1.5"/><rect class="bar" x="3" y="18" width="153.7" height="2" rx="1"/><text class="nm" x="11" y="15">parse_scores</text><text class="cx" x="256" y="15" text-anchor="end">4→5</text></g><g class="node st-removed" data-pair="p4" data-status="removed" transform="translate(0,130)"><title>process · function · 31 lines · complexity 10</title><rect class="card" width="264" height="22" rx="6"/><rect class="accent" x="0" y="0" width="3" height="22" rx="1.5"/><rect class="bar" x="3" y="18" width="258.0" height="2" rx="1"/><text class="nm" x="11" y="15">process</text><text class="cx" x="256" y="15" text-anchor="end">10</text></g><g class="node st-modified" data-pair="p3" data-status="modified" transform="translate(0,157)"><title>main · function · 2 lines · complexity 1</title><rect class="card" width="264" height="22" rx="6"/><rect class="accent" x="0" y="0" width="3" height="22" rx="1.5"/><rect class="bar" x="3" y="18" width="65.5" height="2" rx="1"/><text class="nm" x="11" y="15">main</text><text class="cx" x="256" y="15" text-anchor="end">1</text></g><g class="node st-unchanged" data-pair="p1" data-status="unchanged" transform="translate(454,76)"><title>load_rows · function · 3 lines · complexity 1</title><rect class="card" width="264" height="22" rx="6"/><rect class="accent" x="0" y="0" width="3" height="22" rx="1.5"/><rect class="bar" x="3" y="18" width="80.3" height="2" rx="1"/><text class="nm" x="11" y="15">load_rows</text><text class="cx" x="256" y="15" text-anchor="end">1</text></g><g class="node st-modified" data-pair="p2" data-status="modified" transform="translate(454,103)"><title>parse_scores · function · 11 lines · complexity 5  (+0 lines, +1 complexity)</title><rect class="card" width="264" height="22" rx="6"/><rect class="accent" x="0" y="0" width="3" height="22" rx="1.5"/><rect class="bar" x="3" y="18" width="153.7" height="2" rx="1"/><text class="nm" x="11" y="15">parse_scores</text><text class="cx" x="256" y="15" text-anchor="end">4→5</text></g><g class="node st-added" data-pair="p5" data-status="added" transform="translate(454,130)"><title>letter_grade · function · 5 lines · complexity 3</title><rect class="card" width="264" height="22" rx="6"/><rect class="accent" x="0" y="0" width="3" height="22" rx="1.5"/><rect class="bar" x="3" y="18" width="103.6" height="2" rx="1"/><text class="nm" x="11" y="15">letter_grade</text><text class="cx" x="256" y="15" text-anchor="end">3</text></g><g class="node st-added" data-pair="p6" data-status="added" transform="translate(454,157)"><title>build_report · function · 11 lines · complexity 4</title><rect class="card" width="264" height="22" rx="6"/><rect class="accent" x="0" y="0" width="3" height="22" rx="1.5"/><rect class="bar" x="3" y="18" width="153.7" height="2" rx="1"/><text class="nm" x="11" y="15">build_report</text><text class="cx" x="256" y="15" text-anchor="end">4</text></g><g class="node st-added" data-pair="p7" data-status="added" transform="translate(454,184)"><title>format_csv · function · 5 lines · complexity 2</title><rect class="card" width="264" height="22" rx="6"/><rect class="accent" x="0" y="0" width="3" height="22" rx="1.5"/><rect class="bar" x="3" y="18" width="103.6" height="2" rx="1"/><text class="nm" x="11" y="15">format_csv</text><text class="cx" x="256" y="15" text-anchor="end">2</text></g><g class="node st-modified" data-pair="p3" data-status="modified" transform="translate(454,211)"><title>main · function · 2 lines · complexity 1</title><rect class="card" width="264" height="22" rx="6"/><rect class="accent" x="0" y="0" width="3" height="22" rx="1.5"/><rect class="bar" x="3" y="18" width="65.5" height="2" rx="1"/><text class="nm" x="11" y="15">main</text><text class="cx" x="256" y="15" text-anchor="end">1</text></g></svg></div>
+    <aside class="panel" id="panel" hidden></aside>
+  </main>
+
+  <footer class="hint">
+    <span><b>Click</b> a block to read the code</span>
+    <span><b>Hover</b> to follow its counterpart</span>
+    <span><b>Esc</b> to close</span>
+  </footer>
+
+</div>
+
+<script id="payload" type="application/json">{"old": {"label": "examples\\before.py", "path": "examples\\before.py", "loc": 55, "symbols": 4}, "new": {"label": "examples\\after.py", "path": "examples\\after.py", "loc": 47, "symbols": 6}, "summary": {"added": 3, "removed": 1, "modified": 2, "moved": 0, "unchanged": 1, "old_loc": 55, "new_loc": 47, "loc_delta": -8, "old_complexity": 16, "new_complexity": 16, "complexity_delta": 0, "old_symbols": 4, "new_symbols": 6}, "panels": {"p1": {"id": "p1", "name": "load_rows", "qualname": "load_rows", "kind": "function", "status": "unchanged", "metrics": ["lines 3", "complexity 1", "1 params"], "note": "", "rows": [[11, "def load_rows(path):", 14, "def load_rows(path):", "eq"], [12, "    with open(path, newline=\"\", encoding=\"utf-8\") as handle:", 15, "    with open(path, newline=\"\", encoding=\"utf-8\") as handle:", "eq"], [13, "        return list(csv.DictReader(handle))", 16, "        return list(csv.DictReader(handle))", "eq"]]}, "p2": {"id": "p2", "name": "parse_scores", "qualname": "parse_scores", "kind": "function", "status": "modified", "metrics": ["lines 11", "complexity 4 → 5 (+1)", "1 params"], "note": "", "rows": [[16, "def parse_scores(row):", 19, "def parse_scores(row):", "eq"], [17, "    scores = []", 20, "    scores = []", "eq"], [18, "    for key in (\"hw\", \"mid\", \"final\"):", 21, "    for key in (\"hw\", \"mid\", \"final\"):", "eq"], [19, "        raw = row.get(key, \"\")", 22, "        raw = (row.get(key) or \"\").strip()", "rep"], [20, "        if raw == \"\":", 23, "        if not raw:", "rep"], [21, "            continue", 24, "            continue", "eq"], [22, "        try:", 25, "        try:", "eq"], [23, "            scores.append(float(raw))", 26, "            scores.append(float(raw))", "eq"], [24, "        except ValueError:", 27, "        except ValueError:", "eq"], [25, "            print(\"bad value: %s\" % raw, file=sys.stderr)", 28, "            print(f\"bad value for {row.get('name')}: {raw}\", file=sys.stderr)", "rep"], [26, "    return scores", 29, "    return scores", "eq"]]}, "p3": {"id": "p3", "name": "main", "qualname": "main", "kind": "function", "status": "modified", "metrics": ["lines 2", "complexity 1", "1 params"], "note": "", "rows": [[62, "def main(path):", 59, "def main(path):", "eq"], [63, "    process(path)", 60, "    print(format_csv(build_report(load_rows(path))))", "rep"]]}, "p4": {"id": "p4", "name": "process", "qualname": "process", "kind": "function", "status": "removed", "metrics": ["31 lines", "complexity 10", "1 params"], "note": "no longer exists in this version", "rows": [[29, "def process(path):", null, null, "del"], [30, "    rows = load_rows(path)", null, null, "del"], [31, "    report = []", null, null, "del"], [32, "    for row in rows:", null, null, "del"], [33, "        name = row[\"name\"].strip()", null, null, "del"], [34, "        if not name:", null, null, "del"], [35, "            continue", null, null, "del"], [36, "        scores = parse_scores(row)", null, null, "del"], [37, "        if not scores:", null, null, "del"], [38, "            average = 0.0", null, null, "del"], [39, "        else:", null, null, "del"], [40, "            total = 0.0", null, null, "del"], [41, "            for score in scores:", null, null, "del"], [42, "                total += score", null, null, "del"], [43, "            average = total / len(scores)", null, null, "del"], [44, "        if average >= 90:", null, null, "del"], [45, "            grade = \"A\"", null, null, "del"], [46, "        elif average >= 80:", null, null, "del"], [47, "            grade = \"B\"", null, null, "del"], [48, "        elif average >= 70:", null, null, "del"], [49, "            grade = \"C\"", null, null, "del"], [50, "        elif average >= 60:", null, null, "del"], [51, "            grade = \"D\"", null, null, "del"], [52, "        else:", null, null, "del"], [53, "            grade = \"F\"", null, null, "del"], [54, "        report.append({\"name\": name, \"average\": average, \"grade\": grade})", null, null, "del"], [55, "    report.sort(key=lambda item: item[\"average\"], reverse=True)", null, null, "del"], [56, "    print(\"name,average,grade\")", null, null, "del"], [57, "    for item in report:", null, null, "del"], [58, "        print(\"%s,%.1f,%s\" % (item[\"name\"], item[\"average\"], item[\"grade\"]))", null, null, "del"], [59, "    return report", null, null, "del"]]}, "p5": {"id": "p5", "name": "letter_grade", "qualname": "letter_grade", "kind": "function", "status": "added", "metrics": ["5 lines", "complexity 3", "1 params"], "note": "new in this version", "rows": [[null, null, 32, "def letter_grade(average):", "ins"], [null, null, 33, "    for cutoff, letter in GRADE_CUTOFFS:", "ins"], [null, null, 34, "        if average >= cutoff:", "ins"], [null, null, 35, "            return letter", "ins"], [null, null, 36, "    return \"F\"", "ins"]]}, "p6": {"id": "p6", "name": "build_report", "qualname": "build_report", "kind": "function", "status": "added", "metrics": ["11 lines", "complexity 4", "1 params"], "note": "new in this version", "rows": [[null, null, 39, "def build_report(rows):", "ins"], [null, null, 40, "    report = []", "ins"], [null, null, 41, "    for row in rows:", "ins"], [null, null, 42, "        name = row[\"name\"].strip()", "ins"], [null, null, 43, "        if not name:", "ins"], [null, null, 44, "            continue", "ins"], [null, null, 45, "        scores = parse_scores(row)", "ins"], [null, null, 46, "        average = mean(scores) if scores else 0.0", "ins"], [null, null, 47, "        report.append({\"name\": name, \"average\": average, \"grade\": letter_grade(average)})", "ins"], [null, null, 48, "    report.sort(key=lambda item: item[\"average\"], reverse=True)", "ins"], [null, null, 49, "    return report", "ins"]]}, "p7": {"id": "p7", "name": "format_csv", "qualname": "format_csv", "kind": "function", "status": "added", "metrics": ["5 lines", "complexity 2", "1 params"], "note": "new in this version", "rows": [[null, null, 52, "def format_csv(report):", "ins"], [null, null, 53, "    lines = [\"name,average,grade\"]", "ins"], [null, null, 54, "    for item in report:", "ins"], [null, null, 55, "        lines.append(f\"{item['name']},{item['average']:.1f},{item['grade']}\")", "ins"], [null, null, 56, "    return \"\\n\".join(lines)", "ins"]]}}, "row_h": 27}</script>
+<script>/* StructScope viewer — no dependencies, no network. */
+(function () {
+  "use strict";
+
+  var data = JSON.parse(document.getElementById("payload").textContent);
+  var svg = document.getElementById("canvas");
+  var panel = document.getElementById("panel");
+  var filters = document.getElementById("filters");
+
+  var nodes = Array.prototype.slice.call(svg.querySelectorAll(".node"));
+  var links = Array.prototype.slice.call(svg.querySelectorAll(".link"));
+
+  function nodeOf(el) {
+    return el && el.closest ? el.closest(".node") : null;
+  }
+
+  function clearHot() {
+    svg.classList.remove("dimmed");
+    Array.prototype.forEach.call(svg.querySelectorAll(".hot"), function (el) {
+      el.classList.remove("hot");
+    });
+  }
+
+  function setHot(pair) {
+    if (!pair) return;
+    svg.classList.add("dimmed");
+    Array.prototype.forEach.call(
+      svg.querySelectorAll('[data-pair="' + pair + '"]'),
+      function (el) {
+        el.classList.add("hot");
+      }
+    );
+  }
+
+  svg.addEventListener("mouseover", function (event) {
+    var node = nodeOf(event.target);
+    if (!node) return;
+    if (nodeOf(event.relatedTarget) === node) return;
+    setHot(node.getAttribute("data-pair"));
+  });
+
+  svg.addEventListener("mouseout", function (event) {
+    var node = nodeOf(event.target);
+    if (!node) return;
+    if (nodeOf(event.relatedTarget) === node) return;
+    clearHot();
+  });
+
+  svg.addEventListener("click", function (event) {
+    var node = nodeOf(event.target);
+    if (node) openPanel(node.getAttribute("data-pair"));
+  });
+
+  /* ------------------------------------------------------------ panel */
+
+  function openPanel(pair) {
+    var item = data.panels[pair];
+    if (!item) return;
+
+    panel.innerHTML = "";
+    panel.scrollTop = 0;
+
+    var head = document.createElement("div");
+    head.className = "p-head";
+
+    var title = document.createElement("div");
+    title.className = "p-title";
+
+    var chip = document.createElement("span");
+    chip.className = "chip st-" + item.status;
+    chip.textContent = item.status;
+
+    var heading = document.createElement("h2");
+    heading.textContent = item.name;
+
+    title.appendChild(chip);
+    title.appendChild(heading);
+
+    var close = document.createElement("button");
+    close.type = "button";
+    close.className = "p-close";
+    close.setAttribute("aria-label", "Close");
+    close.textContent = "\u00d7";
+    close.addEventListener("click", closePanel);
+
+    head.appendChild(title);
+    head.appendChild(close);
+
+    var metrics = document.createElement("div");
+    metrics.className = "p-metrics";
+    item.metrics.forEach(function (text) {
+      var span = document.createElement("span");
+      span.textContent = text;
+      metrics.appendChild(span);
+    });
+    head.appendChild(metrics);
+
+    if (item.note) {
+      var note = document.createElement("p");
+      note.className = "p-note";
+      note.textContent = item.note;
+      head.appendChild(note);
+    }
+
+    panel.appendChild(head);
+    panel.appendChild(buildSource(item.rows));
+    panel.hidden = false;
+  }
+
+  function buildSource(rows) {
+    var wrap = document.createElement("div");
+    wrap.className = "src";
+
+    rows.forEach(function (row) {
+      var line = document.createElement("div");
+      line.className = "srow " + row[4];
+
+      line.appendChild(cell("ln old", row[0]));
+      line.appendChild(cell("code c-old", row[1]));
+      line.appendChild(cell("ln new", row[2]));
+      line.appendChild(cell("code c-new", row[3]));
+
+      wrap.appendChild(line);
+    });
+
+    return wrap;
+  }
+
+  function cell(className, text) {
+    var span = document.createElement("span");
+    span.className = className;
+    span.textContent = text === null || text === undefined ? "" : text;
+    return span;
+  }
+
+  function closePanel() {
+    panel.hidden = true;
+    panel.innerHTML = "";
+  }
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") closePanel();
+  });
+
+  /* ----------------------------------------------------------- filter */
+
+  function visible(status) {
+    var mode = filters.getAttribute("data-mode") || "all";
+    if (mode === "all") return true;
+    if (mode === "changed") return status !== "unchanged";
+    return status === mode;
+  }
+
+  function applyFilter(mode) {
+    filters.setAttribute("data-mode", mode);
+    nodes.forEach(function (node) {
+      node.classList.toggle("is-hidden", !visible(node.getAttribute("data-status")));
+    });
+    links.forEach(function (link) {
+      link.classList.toggle("is-hidden", !visible(link.getAttribute("data-status")));
+    });
+    clearHot();
+  }
+
+  filters.addEventListener("click", function (event) {
+    var button = event.target.closest("button[data-filter]");
+    if (!button) return;
+    Array.prototype.forEach.call(
+      filters.querySelectorAll("button"),
+      function (item) {
+        item.classList.toggle("is-active", item === button);
+      }
+    );
+    applyFilter(button.getAttribute("data-filter"));
+  });
+})();
+</script>
+</body>
+</html>
