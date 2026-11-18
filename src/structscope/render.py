@@ -259,7 +259,7 @@ def _node(node: Dict[str, Any], by_pair: Dict[str, Pair], max_loc: int) -> str:
         f'<rect class="card" width="{node["w"]}" height="{node["h"]}" rx="6"/>'
         f'<rect class="accent" x="0" y="0" width="3" height="{node["h"]}" rx="1.5"/>'
         f'<rect class="bar" x="3" y="{node["h"] - 4}" width="{bar:.1f}" height="2" rx="1"/>'
-        f'<text class="nm" x="11" y="15">{escape(_clip(symbol.name, 27))}</text>'
+        f'<text class="nm" x="11" y="15">{escape(_clip(symbol.display, 27))}</text>'
         f'<text class="cx" x="{node["w"] - 8}" y="15" text-anchor="end">{escape(badge)}</text>'
         f"</g>"
     )
@@ -284,7 +284,9 @@ def _clip(text: str, limit: int) -> str:
 
 def _stats_html(result: DiffResult, geom: Dict[str, Any]) -> str:
     summary = result.summary()
-    chips: List[str] = []
+    chips: List[str] = [
+        f'<span class="chip">{escape(result.language_name)}</span>',
+    ]
 
     for key in ("added", "removed", "modified", "moved"):
         count = summary[key]

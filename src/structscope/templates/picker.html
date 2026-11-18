@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StructScope</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --line: #e2e8f0;
+    --text: #0f172a;
+    --muted: #64748b;
+    --accent: #2563eb;
+    --added: #15803d;
+    --removed: #b91c1c;
+    --modified: #b45309;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.6 ui-sans-serif, system-ui, "Segoe UI", "Microsoft YaHei", sans-serif;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+  }
+  header h1 { margin: 0; font-size: 17px; letter-spacing: -.01em; }
+  header p { margin: 0; color: var(--muted); font-size: 13px; }
+  main {
+    flex: 1;
+    width: min(980px, 100%);
+    margin: 0 auto;
+    padding: 34px 28px 60px;
+  }
+  .lead { margin: 0 0 22px; color: var(--muted); }
+  .pick {
+    display: grid;
+    grid-template-columns: 1fr 56px 1fr;
+    gap: 14px;
+    align-items: stretch;
+  }
+  .drop {
+    position: relative;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 12px;
+    background: var(--surface);
+    padding: 22px;
+    min-height: 168px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .drop:hover, .drop:focus-within { border-color: var(--accent); }
+  .drop.over { border-color: var(--accent); background: #eff6ff; }
+  .drop.filled { border-style: solid; border-color: #cbd5e1; }
+  .drop .tag {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+  }
+  .drop .name { font-weight: 600; font-size: 15px; word-break: break-all; }
+  .drop .meta { color: var(--muted); font-size: 12.5px; }
+  .drop input[type=file] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .vs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .controls {
+    margin-top: 22px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+  }
+  label.field { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+  select {
+    font: inherit;
+    padding: 7px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+  }
+  button.go {
+    margin-left: auto;
+    font: inherit;
+    font-weight: 600;
+    color: #fff;
+    background: var(--accent);
+    border: 0;
+    border-radius: 9px;
+    padding: 10px 22px;
+    cursor: pointer;
+  }
+  button.go:disabled { background: #cbd5e1; cursor: not-allowed; }
+  .status { margin-top: 20px; min-height: 24px; font-size: 13.5px; }
+  .status.err { color: var(--removed); white-space: pre-wrap; }
+  .status.ok { color: var(--added); }
+  .legend {
+    margin-top: 34px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 12.5px;
+  }
+  .legend b { color: var(--text); font-weight: 600; }
+  @media (max-width: 760px) {
+    .pick { grid-template-columns: 1fr; }
+    .vs { padding: 4px 0; }
+    button.go { margin-left: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>StructScope</h1>
+  <p>see what changed in the shape of your code</p>
+</header>
+
+<main>
+  <p class="lead">选择同一个文件的两个版本，随便什么语言。文件只会留在你这台机器上。</p>
+
+  <div class="pick">
+    <label class="drop" id="drop-old">
+      <span class="tag">旧版本</span>
+      <span class="name" id="name-old">点击或拖入文件</span>
+      <span class="meta" id="meta-old">before.py</span>
+      <input type="file" id="file-old">
+    </label>
+
+    <div class="vs">对比</div>
+
+    <label class="drop" id="drop-new">
+      <span class="tag">新版本</span>
+      <span class="name" id="name-new">点击或拖入文件</span>
+      <span class="meta" id="meta-new">after.py</span>
+      <input type="file" id="file-new">
+    </label>
+  </div>
+
+  <div class="controls">
+    <label class="field">
+      语言
+      <select id="lang">
+        <option value="auto" selected>自动识别</option>
+        __LANGUAGES__
+      </select>
+    </label>
+    <button class="go" id="go" type="button" disabled>生成对比</button>
+  </div>
+
+  <div class="status" id="status" role="status"></div>
+
+  <div class="legend">
+    <b>怎么读那张图：</b>每个方块是一个函数或类，细条长度是行数，右边数字是复杂度，
+    曲线把改动前后的同一个函数连起来。点方块看源码，顶部的按钮可以只看改动过的。
+  </div>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  var state = { old: null, new: null };
+  var go = document.getElementById("go");
+  var statusBox = document.getElementById("status");
+  var langSelect = document.getElementById("lang");
+
+  function say(text, kind) {
+    statusBox.textContent = text;
+    statusBox.className = "status" + (kind ? " " + kind : "");
+  }
+
+  function decode(buffer) {
+    var bytes = new Uint8Array(buffer);
+    try {
+      return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    } catch (err) {
+      try {
+        return new TextDecoder("gb18030").decode(bytes);
+      } catch (err2) {
+        return new TextDecoder("utf-8").decode(bytes);
+      }
+    }
+  }
+
+  function read(file, slot) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      state[slot] = { name: file.name, text: decode(reader.result) };
+      paint(slot);
+      refresh();
+    };
+    reader.onerror = function () { say("读不了这个文件：" + file.name, "err"); };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function paint(slot) {
+    var item = state[slot];
+    var nameEl = document.getElementById("name-" + slot);
+    var metaEl = document.getElementById("meta-" + slot);
+    var drop = document.getElementById("drop-" + slot);
+    if (!item) return;
+    nameEl.textContent = item.name;
+    metaEl.textContent = item.text.length.toLocaleString() + " 个字符";
+    drop.classList.add("filled");
+  }
+
+  function refresh() {
+    go.disabled = !(state.old && state.new);
+  }
+
+  ["old", "new"].forEach(function (slot) {
+    var input = document.getElementById("file-" + slot);
+    var drop = document.getElementById("drop-" + slot);
+
+    input.addEventListener("change", function () {
+      if (input.files && input.files[0]) read(input.files[0], slot);
+    });
+
+    ["dragenter", "dragover"].forEach(function (name) {
+      drop.addEventListener(name, function (event) {
+        event.preventDefault();
+        drop.classList.add("over");
+      });
+    });
+    ["dragleave", "drop"].forEach(function (name) {
+      drop.addEventListener(name, function (event) {
+        event.preventDefault();
+        drop.classList.remove("over");
+      });
+    });
+    drop.addEventListener("drop", function (event) {
+      var file = event.dataTransfer && event.dataTransfer.files[0];
+      if (file) read(file, slot);
+    });
+  });
+
+  go.addEventListener("click", function () {
+    if (!(state.old && state.new)) return;
+    go.disabled = true;
+    say("正在解析……");
+
+    var payload = {
+      old: state.old.text,
+      new: state.new.text,
+      oldName: state.old.name,
+      newName: state.new.name,
+      lang: langSelect.value
+    };
+
+    fetch("/diff", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    })
+      .then(function (response) { return response.json(); })
+      .then(function (data) {
+        go.disabled = false;
+        if (data.error) {
+          say(data.error, "err");
+          return;
+        }
+        var s = data.summary;
+        say(
+          "完成：" + s.added + " 新增，" + s.removed + " 删除，" +
+          s.modified + " 修改，LOC " + s.old_loc + " → " + s.new_loc,
+          "ok"
+        );
+        window.open(data.url, "_blank");
+      })
+      .catch(function (err) {
+        go.disabled = false;
+        say("请求失败：" + err.message, "err");
+      });
+  });
+})();
+</script>
+</body>
+</html>

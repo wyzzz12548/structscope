@@ -47,10 +47,17 @@ class Symbol:
         return max(0, self.end_lineno - self.lineno + 1)
 
     @property
+    def display(self) -> str:
+        """Short label for the map: callables keep their parentheses."""
+        if self.kind in ("function", "method", "nested"):
+            return f"{self.name}()"
+        return self.name
+
+    @property
     def label(self) -> str:
-        if self.kind == "class":
-            return f"class {self.name}"
-        return f"def {self.name}" if self.kind != "nested" else f"def {self.name}"
+        if self.kind in ("function", "method", "nested"):
+            return self.display
+        return f"{self.kind} {self.name}"
 
 
 @dataclass

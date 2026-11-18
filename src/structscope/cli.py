@@ -7,8 +7,9 @@ import json
 import sys
 import webbrowser
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import List, Optional, Sequence
 
+from . import langs
 from .diff import diff_files
 from .model import StructScopeError
 from .render import render_html
@@ -17,10 +18,18 @@ from .render import render_html
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="structscope",
-        description="Structural diff for Python: see what changed, not which characters.",
+        description=(
+            "Structural diff: see what changed in the shape of your code, "
+            "not which characters moved.  Reads Python, Java, C++, C#, "
+            "JavaScript and TypeScript."
+        ),
+        epilog=(
+            "Want to pick the files in a browser instead?  Run: "
+            "structscope serve"
+        ),
     )
-    parser.add_argument("old", help="the original .py file")
-    parser.add_argument("new", help="the updated .py file")
+    parser.add_argument("old", help="the original source file")
+    parser.add_argument("new", help="the updated source file")
     parser.add_argument(
         "-o",
         "--output",
@@ -29,6 +38,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--old-label", default="", help="label for the left column")
     parser.add_argument("--new-label", default="", help="label for the right column")
     parser.add_argument("--title", default="", help="report title")
+    parser.add_argument(
+        "--lang",
+        default="auto",
+        choices=["auto"] + langs.LANGUAGES,
+        help="source language (default: guess from the file extension)",
+    )
     parser.add_argument(
         "--json",
         action="store_true",
@@ -44,9 +59,30 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def build_serve_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="structscope serve",
+        description="Open a local page where you pick two files in the browser.",
+    )
+    parser.add_argument("--host", default="127.0.0.1", help="interface to bind (default: localhost only)")
+    parser.add_argument("--port", type=int, default=8000, help="port to listen on (default: 8000)")
+    parser.add_argument(
+        "--no-open",
+        dest="open_browser",
+        action="store_false",
+        help="do not open a browser window",
+    )
+    return parser
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     _safe_stdout()
-    args = build_parser().parse_args(argv)
+    arguments: List[str] = list(argv if argv is not None else sys.argv[1:])
+
+    if arguments and arguments[0] == "serve":
+        return _serve_main(arguments[1:])
+
+    args = build_parser().parse_args(arguments)
 
     try:
         result = diff_files(
@@ -54,6 +90,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             args.new,
             old_label=args.old_label,
             new_label=args.new_label,
+            lang=args.lang,
         )
     except StructScopeError as exc:
         print(f"structscope: {exc}", file=sys.stderr)
@@ -78,7 +115,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 2
 
     if not args.quiet:
-        print(_summary_line(summary))
+        print(_summary_line(summary, result.language_name))
         size_kb = max(1, output.stat().st_size // 1024) if output.exists() else 0
         print(f"wrote {output} ({size_kb} KB)")
 
@@ -88,7 +125,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     return 0
 
 
-def _summary_line(summary) -> str:
+def _serve_main(argv: Sequence[str]) -> int:
+    from .server import serve
+
+    args = build_serve_parser().parse_args(list(argv))
+    try:
+        return serve(host=args.host, port=args.port, open_browser=args.open_browser)
+    except StructScopeError as exc:
+        print(f"structscope: {exc}", file=sys.stderr)
+        return 2
+
+
+def _summary_line(summary, language: str = "") -> str:
     parts = []
     for key in ("added", "removed", "modified", "moved"):
         if summary[key]:
@@ -98,7 +146,8 @@ def _summary_line(summary) -> str:
     parts.append(
         f"LOC {summary['old_loc']} -> {summary['new_loc']} ({summary['loc_delta']:+d})"
     )
-    return "structscope: " + ", ".join(parts)
+    prefix = f"structscope[{language}]" if language and language != "Python" else "structscope"
+    return prefix + ": " + ", ".join(parts)
 
 
 def _safe_stdout() -> None:

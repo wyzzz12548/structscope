@@ -2,10 +2,12 @@
 
 **See what a change did to your code — not which characters moved.**
 
-`structscope` compares two versions of a Python file at the level of *structure*
+`structscope` compares two versions of a source file at the level of *structure*
 instead of text, and renders the result as one interactive picture: every
 function and class becomes a block, blocks are coloured by what happened to
 them, and curves tie each block to its counterpart in the other version.
+
+It reads **Python, Java, C++, C, C#, JavaScript and TypeScript**.
 
 ```console
 $ structscope before.py after.py --open
@@ -13,8 +15,16 @@ structscope: 3 added, 1 removed, 2 modified, 1 unchanged, LOC 55 -> 47 (-8)
 wrote after.structscope.html (26 KB)
 ```
 
-One HTML file, no server, no CDN, no JavaScript dependencies. It works on a
-laptop with the Wi-Fi turned off.
+Prefer clicking to typing? `structscope serve` opens a local page where you pick
+both files in the browser:
+
+```console
+$ structscope serve
+StructScope is running at http://127.0.0.1:8000/
+```
+
+The report is one HTML file — no CDN, no JavaScript dependencies, no network. It
+works on a laptop with the Wi-Fi turned off.
 
 ---
 
@@ -47,18 +57,18 @@ The picture is built for two audiences:
 ```
 before.py                       after.py
 ┌───────────────────────┐       ┌───────────────────────┐
-│ load_rows          4  │───────│ load_rows          4  │  unchanged
-│ parse_scores       6  │───────│ parse_scores       7  │  modified
-│ process           18  │   ╳   │ letter_grade       3  │  added
-│ main               2  │───╮   │ build_report       9  │  added
-└───────────────────────┘   ╰───│ format_csv         4  │  added
-                                │ main               2  │  modified
+│ load_rows()        4  │───────│ load_rows()        4  │  unchanged
+│ parse_scores()     6  │───────│ parse_scores()     7  │  modified
+│ process()         18  │   ╳   │ letter_grade()     3  │  added
+│ main()             2  │───╮   │ build_report()     9  │  added
+└───────────────────────┘   ╰───│ format_csv()       4  │  added
+                                │ main()             2  │  modified
                                 └───────────────────────┘
 ```
 
 | Visual | Meaning |
 | --- | --- |
-| One block | One function, method, or class |
+| One block | One function, method, class, struct, interface or namespace |
 | Indentation | Lexical nesting (methods sit under their class) |
 | Thin bar in the block | Lines of code, relative to the largest symbol in the diff |
 | Number on the right | Cyclomatic complexity (`7→10` when it changed) |
@@ -66,8 +76,8 @@ before.py                       after.py
 | Curve between columns | The same symbol in both versions |
 | Click a block | Side-by-side source of just that symbol, with changed lines marked |
 
-A summary strip on top totals the changes: symbol counts, lines of code, and
-complexity for both versions.
+A summary strip on top totals the changes: language, symbol counts, lines of
+code, and complexity for both versions.
 
 ## Install
 
@@ -87,20 +97,38 @@ python -m structscope examples/before.py examples/after.py -o demo.html
 
 ## Use
 
+### Pick the files in a browser
+
+```console
+structscope serve                 # http://127.0.0.1:8000/
+structscope serve --port 9000     # another port
+structscope serve --no-open       # do not launch a browser
+```
+
+Drop the old version and the new version onto the page, pick a language (or
+leave it on *auto*), press **生成对比**. The report opens in a new tab and can be
+saved like any other file.
+
+The page is served from your own machine and the server only listens on
+`127.0.0.1`, so source code never leaves the computer. Nothing is written to
+disk unless you save the report.
+
 ### Command line
 
 ```console
-structscope OLD.py NEW.py
-structscope OLD.py NEW.py -o report.html --open
+structscope OLD NEW
+structscope OLD NEW -o report.html --open
+structscope Old.java New.java --lang java
 structscope my_solution.py reference.py \
     --old-label "my code" --new-label "reference" \
     --title "Exercise 3"
-structscope OLD.py NEW.py --json        # summary only, for scripts
+structscope OLD NEW --json        # summary only, for scripts
 ```
 
 | Option | Meaning |
 | --- | --- |
 | `-o, --output` | Where to write the report (default: `<new>.structscope.html`) |
+| `--lang` | `auto` (default, from the extension), `python`, `java`, `cpp`, `c`, `csharp`, `javascript`, `typescript` |
 | `--old-label`, `--new-label` | Column headings |
 | `--title` | Report title |
 | `--json` | Print the summary as JSON and exit |
@@ -116,12 +144,12 @@ from structscope import diff_files, diff_sources, render_html, write_report
 
 result = diff_files("before.py", "after.py")
 print(result.summary())
-# {'added': 3, 'removed': 1, 'modified': 2, 'unchanged': 1, ...}
+# {'added': 3, 'removed': 1, 'modified': 2, 'unchanged': 1, 'language': 'python', ...}
 
 write_report(result, "report.html", title="Refactor review")
 
 # or work on strings, e.g. from a web form or a notebook
-result = diff_sources(old_source, new_source, "v1", "v2")
+result = diff_sources(old_source, new_source, "v1", "v2", lang="java")
 html = render_html(result)
 ```
 
@@ -141,25 +169,28 @@ for pair in result.pairs:
 ## How it works
 
 ```
-source ──► parser.py ──► FileModel (tree of Symbols)
-                            │
-                            ▼
-                         matcher.py ──► pairs + status
-                            │
-                            ▼
-                         layout.py ──► x / y for every block
-                            │
-                            ▼
-                         render.py ──► SVG + JSON  ──► one .html
+source ──► parser.py (Python: ast)  ─┐
+        └─► cparse.py  (C-like: braces) ─► FileModel (tree of Symbols)
+                                          │
+                                          ▼
+                                    matcher.py ──► pairs + status
+                                          │
+                                          ▼
+                                    layout.py ──► x / y for every block
+                                          │
+                                          ▼
+                                    render.py ──► SVG + JSON  ──► one .html
 ```
 
-1. **Parse** with `ast`. Each `def` / `async def` / `class` becomes a `Symbol`
-   carrying its line span, non-blank line count, cyclomatic complexity,
-   parameter count, and a hash of its syntax tree.
+1. **Parse.** Python goes through `ast`. Everything with braces goes through
+   `cparse.py`, which blanks comments and string literals, matches braces, and
+   reads each declaration from the statement before its opening brace. Both
+   produce the same tree of `Symbol`s: line span, non-blank line count,
+   cyclomatic complexity, parameter count, and a hash of the declaration plus
+   body.
 2. **Match** old symbols to new ones in three passes: same qualified name;
-   same syntax-tree hash (this is how a rename is recognised as a rename);
-   then fuzzy name similarity within the same kind. Everything unmatched is
-   added or removed.
+   same hash (this is how a rename is recognised as a rename); then fuzzy name
+   similarity within the same kind. Everything unmatched is added or removed.
 3. **Lay out** each side as an indented outline in document order.
 4. **Render** static SVG in Python and ship the source slices as JSON for the
    click-through panel. The browser only handles hover, filter and the panel.
@@ -170,13 +201,19 @@ Design choices worth knowing:
   a diff of untrusted code is safe.
 - **The report is one file.** Styles, script and data are inlined; the data
   script tag escapes `</` so source containing markup cannot break out.
+- **Browser mode reuses the same parser.** The page posts the two files to the
+  local server, which returns a report — so "pick a file" and "run the CLI"
+  produce identical pictures.
 - **The output is a document, not a screenshot.** PNG export is on the
   roadmap; the interactive HTML is the product.
 
 ## Limits and roadmap
 
-Known limits of the current skeleton:
+Known limits:
 
+- The C-like parser reads *shape*, not grammar: preprocessor tricks, lambdas
+  and one-line `if (x) y;` statements can be missed or count as part of the
+  enclosing declaration. It never refuses the file, but it is a heuristic.
 - Module-level code inside `if` / `try` blocks is not collected as symbols.
 - Matching a heavily rewritten function falls back to *removed + added*
   rather than *modified*.
@@ -186,11 +223,11 @@ Known limits of the current skeleton:
 
 Roadmap, roughly in order:
 
+- [ ] Optional tree-sitter backend for exact C-like syntax trees
 - [ ] Collapse nested symbols; keep classes folded by default
 - [ ] Export the current view to PNG and SVG
 - [ ] A "structure only" diff of two directories (module-level view)
 - [ ] `--fail-on` thresholds for CI (e.g. complexity regression)
-- [ ] Optional side-by-side unified diff mode for a single symbol
 
 ## Development
 
@@ -206,15 +243,22 @@ against the checkout directly.
 
 ```
 src/structscope/
-├── model.py      dataclasses: Symbol, FileModel, Pair, Status
-├── parser.py     ast -> Symbol tree, LOC, complexity
-├── matcher.py    three-pass symbol matching
-├── diff.py       DiffResult + summary
-├── layout.py     geometry for the two columns
-├── render.py     SVG, payload, HTML assembly
-├── cli.py        argparse front end
-└── templates/    viewer.html / viewer.css / viewer.js
+├── model.py       dataclasses: Symbol, FileModel, Pair, Status
+├── parser.py      Python: ast -> Symbol tree, LOC, complexity
+├── cparse.py      C-like: brace matching -> Symbol tree
+├── langs.py       language detection and parser dispatch
+├── matcher.py     three-pass symbol matching
+├── diff.py        DiffResult + summary
+├── layout.py      geometry for the two columns
+├── render.py      SVG, payload, HTML assembly
+├── server.py      local HTTP server for the browser picker
+├── cli.py         argparse front end (`serve` is a subcommand)
+└── templates/     viewer.html / viewer.css / viewer.js / picker.html
 ```
+
+Try it on the samples: `examples/before.py` vs `examples/after.py`,
+`examples/Inventory.java` vs `examples/InventoryRefactored.java`,
+`examples/raster.cpp` vs `examples/raster_refactored.cpp`.
 
 ## License
 

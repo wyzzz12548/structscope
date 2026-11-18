@@ -1,4 +1,4 @@
-# Byte-compiled / optimized files
+﻿# Byte-compiled / optimized files
 __pycache__/
 *.py[cod]
 *$py.class
@@ -33,4 +33,4 @@ report.html
 # OS
 .DS_Store
 Thumbs.db
-examples/demo.html
+examples/demo*.html
