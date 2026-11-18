@@ -118,6 +118,17 @@
   .status { margin-top: 20px; min-height: 24px; font-size: 13.5px; }
   .status.err { color: var(--removed); white-space: pre-wrap; }
   .status.ok { color: var(--added); }
+  .report-link {
+    display: inline-block;
+    margin-top: 14px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--added);
+    padding: 9px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+  }
+  .report-link:hover { background: #166534; }
   .legend {
     margin-top: 34px;
     padding-top: 18px;
@@ -172,6 +183,7 @@
   </div>
 
   <div class="status" id="status" role="status"></div>
+  <div id="result"></div>
 
   <div class="legend">
     <b>怎么读那张图：</b>每个方块是一个函数或类，细条长度是行数，右边数字是复杂度，
@@ -261,6 +273,7 @@
   go.addEventListener("click", function () {
     if (!(state.old && state.new)) return;
     go.disabled = true;
+    document.getElementById("result").innerHTML = "";
     say("正在解析……");
 
     var payload = {
@@ -289,6 +302,19 @@
           s.modified + " 修改，LOC " + s.old_loc + " → " + s.new_loc,
           "ok"
         );
+
+        // The popup may be blocked after an async round trip, so always
+        // leave a clickable link behind as well.
+        var result = document.getElementById("result");
+        result.innerHTML = "";
+        var link = document.createElement("a");
+        link.className = "report-link";
+        link.href = data.url;
+        link.target = "_blank";
+        link.rel = "noopener";
+        link.textContent = "打开报告 →";
+        result.appendChild(link);
+
         window.open(data.url, "_blank");
       })
       .catch(function (err) {
